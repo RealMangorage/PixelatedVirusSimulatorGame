@@ -114,11 +114,11 @@ public final class Level {
         ticks++;
 
         if (!hasAnyTile(Registries.Tiles.INFECTED.getId())) {
-            System.out.println("Infected eliminated Healthy");
+            System.out.println("Healthy eliminated Infected");
             System.exit(0);
         }
         if (!hasAnyTile(Registries.Tiles.HEALTHY.getId())) {
-            System.out.println("Healthy eliminated Infected");
+            System.out.println("Infected eliminated Healthy");
             System.exit(0);
         }
 
