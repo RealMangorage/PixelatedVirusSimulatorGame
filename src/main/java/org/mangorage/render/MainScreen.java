@@ -4,7 +4,6 @@ import org.mangorage.render.core.Level;
 import org.mangorage.render.core.vector.Vector2D;
 
 import javax.swing.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MainScreen {
     public static void main(String[] args) {

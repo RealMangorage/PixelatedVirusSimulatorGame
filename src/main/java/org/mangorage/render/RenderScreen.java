@@ -41,6 +41,7 @@ public class RenderScreen extends JPanel {
                                     scale
                             );
                         }
+                        return false;
                     });
                 });
     }

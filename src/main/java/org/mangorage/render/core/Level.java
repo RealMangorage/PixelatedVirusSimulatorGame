@@ -7,51 +7,15 @@ import org.mangorage.render.core.game.Tile;
 import org.mangorage.render.core.game.TileEntity;
 import org.mangorage.render.core.vector.Vector2D;
 
-import javax.swing.*;
-import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class Level {
-    public static void main(String[] args) {
-        // Create the frame
-        JFrame frame = new JFrame("Square JFrame with Border");
-
-        // Set the size of the window (square)
-        frame.setSize(400, 400); // Width and height are equal
-
-        // Set the layout for the frame
-        frame.setLayout(new BorderLayout());
-
-        // Create a panel to serve as a custom border
-        JPanel borderPanel = new JPanel();
-        borderPanel.setLayout(new BorderLayout());
-        borderPanel.setBackground(Color.GRAY);  // Border color
-
-        // Create the content panel that you want to display inside the border
-        JPanel contentPanel = new JPanel();
-        contentPanel.setBackground(Color.CYAN);  // Content color
-        contentPanel.setPreferredSize(new Dimension(350, 350)); // Smaller than frame size
-
-        // Add the content panel inside the border panel
-        borderPanel.add(contentPanel, BorderLayout.CENTER);
-
-        // Add the border panel to the frame
-        frame.add(borderPanel, BorderLayout.CENTER);
-
-        // Make sure the window closes when the user exits
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        // Set the window to be non-resizable to maintain the square shape
-        frame.setResizable(false);
-
-        // Make the frame visible
-        frame.setVisible(true);
-    }
     public interface IGridConsumer<T> {
-        void accept(Vector2D vector2D, byte id, T object);
+        boolean accept(Vector2D vector2D, byte id, T object);
     }
 
     public static Level create(int width, int height, int scale) {
@@ -109,12 +73,26 @@ public final class Level {
         }
     }
 
+    public boolean hasAnyTile(byte id) {
+        AtomicBoolean has = new AtomicBoolean(false);
+        forEach((pos, id2, tile) -> {
+            if (id2 == id) {
+                has.set(true);
+                return true;
+            }
+            return false;
+        });
+        return has.get();
+    }
+
     public void forEach(IGridConsumer<Tile> consumer) {
-        for (int x = 0; x < grid.length; x++) {
+        core: for (int x = 0; x < grid.length; x++) {
             for (int y = 0; y < grid[x].length; y++) {
                 var pos = Vector2D.of(x, y);
                 var id = getTileId(pos);
-                consumer.accept(pos, id, Registries.Tiles.REGISTRY.getObject(id));
+                var breakLoop = consumer.accept(pos, id, Registries.Tiles.REGISTRY.getObject(id));
+                if (breakLoop)
+                    break core;
             }
         }
     }
@@ -134,6 +112,16 @@ public final class Level {
     @SuppressWarnings("unchecked")
     public void tick() {
         ticks++;
+
+        if (!hasAnyTile(Registries.Tiles.INFECTED.getId())) {
+            System.out.println("Infected eliminated Healthy");
+            System.exit(0);
+        }
+        if (!hasAnyTile(Registries.Tiles.HEALTHY.getId())) {
+            System.out.println("Healthy eliminated Infected");
+            System.exit(0);
+        }
+
         forEach((pos, id, tile) -> {
             if (tile.canTick())
                 tile.tick(this, pos, id);
@@ -145,6 +133,7 @@ public final class Level {
                         tile,
                         tileEntityMap.get(pos)
                 );
+            return false;
         });
     }
 
