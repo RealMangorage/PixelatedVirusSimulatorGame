@@ -38,7 +38,7 @@ public final class Level {
     private int ticks;
 
 
-    public Level(int sizeX, int sizeY) {
+    private Level(int sizeX, int sizeY) {
         this.grid = new byte[sizeX][sizeY];
         this.sizeX = sizeX;
         this.sizeY = sizeY;

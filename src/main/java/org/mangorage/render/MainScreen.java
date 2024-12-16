@@ -15,7 +15,10 @@ public class MainScreen {
         window.setSize(810, 634);
         window.setResizable(true);
 
-        RenderScreen screen = new RenderScreen(Level.create(800, 600, 10), 10);
+        RenderScreen screen = new RenderScreen(
+                Level.create(800, 600, 10),
+                10
+        );
 
         screen.getLevel().setTile(Vector2D.of(0, 0), Registries.Tiles.INFECTED);
         screen.getLevel().setTile(Vector2D.of(12, 1), Registries.Tiles.HEALTHY);
