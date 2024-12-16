@@ -32,13 +32,13 @@ public final class Level {
     private final Map<Vector2D, TileEntity> tileEntityMap = new HashMap<>();
     private final Map<Vector2D, ITileEntityTicker<? extends TileEntity>> tickerMap = new HashMap<>();
 
-    private final int[][] grid;
+    private final byte[][] grid;
     private final int sizeX, sizeY;
     private int ticks;
 
 
     public Level(int sizeX, int sizeY) {
-        this.grid = new int[sizeX][sizeY];
+        this.grid = new byte[sizeX][sizeY];
         this.sizeX = sizeX;
         this.sizeY = sizeY;
     }
