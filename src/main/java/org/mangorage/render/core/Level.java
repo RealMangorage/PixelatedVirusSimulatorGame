@@ -52,7 +52,7 @@ public final class Level {
         if (pos.x() >= sizeX || pos.x() < 0 || pos.y() >= sizeY || pos.y() < 0)
             return;
         synchronized (lock) {
-            this.grid[pos.x()][pos.y()] = holder.getId().getByte();
+            this.grid[pos.x()][pos.y()] = holder.getId().getType();
 
             if (holder.getValue() instanceof IEntityTile<?> entityTile) {
                 var ticker = entityTile.createTicker();

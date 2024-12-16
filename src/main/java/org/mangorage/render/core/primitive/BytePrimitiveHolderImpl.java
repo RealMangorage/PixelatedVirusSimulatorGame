@@ -26,4 +26,10 @@ public final class BytePrimitiveHolderImpl implements IPrimitiveHolder {
     public boolean hasType(Class<?> clazz) {
         return clazz == byte.class;
     }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T getType() {
+        return (T) (Object) value;
+    }
 }

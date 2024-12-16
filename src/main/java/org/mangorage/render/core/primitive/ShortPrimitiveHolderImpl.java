@@ -26,4 +26,10 @@ public final class ShortPrimitiveHolderImpl implements IPrimitiveHolder {
     public boolean hasType(Class<?> clazz) {
         return clazz == short.class;
     }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T getType() {
+        return (T) (Object) value;
+    }
 }

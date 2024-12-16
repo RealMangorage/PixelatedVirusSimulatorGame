@@ -7,6 +7,6 @@ public interface IHolder<T> {
     IPrimitiveHolder getId();
 
     default boolean is(IHolder<?> holder) {
-        return holder.getValue() == getValue();
+        return holder == this;
     }
 }

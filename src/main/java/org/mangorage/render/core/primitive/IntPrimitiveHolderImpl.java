@@ -26,4 +26,10 @@ public final class IntPrimitiveHolderImpl implements IPrimitiveHolder {
     public boolean hasType(Class<?> clazz) {
         return clazz == int.class;
     }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T getType() {
+        return (T) (Object) value;
+    }
 }
