@@ -1,12 +1,14 @@
 package org.mangorage.render.core.registry;
 
 
+import org.mangorage.render.core.primitive.IPrimitiveHolder;
+
 import java.util.Arrays;
 
-public final class DefaultedRegistry<T> implements IRegistry<T> {
+public final class DefaultedByteBackedRegistry<T> implements IRegistry<T> {
 
-    public static <T> DefaultedRegistry<T> create(Class<T> tClass, byte defaultId) {
-        return new DefaultedRegistry<>(tClass, defaultId);
+    public static <T> DefaultedByteBackedRegistry<T> create(Class<T> tClass, byte defaultId) {
+        return new DefaultedByteBackedRegistry<>(tClass, defaultId);
     }
 
 
@@ -17,12 +19,13 @@ public final class DefaultedRegistry<T> implements IRegistry<T> {
     private IHolder<T>[] objects;
     private byte freeID = 0;
 
-    public DefaultedRegistry(Class<T> objectClass, byte defaultID) {
+    public DefaultedByteBackedRegistry(Class<T> objectClass, byte defaultID) {
         this.tClass = objectClass;
         this.objects = new IHolder[0];
         this.defaultId = defaultID;
     }
 
+    @Override
     public <E extends T> IHolder<E> register(E object) {
         synchronized (lock) {
             IHolder<T>[] reference = this.objects;
@@ -35,15 +38,17 @@ public final class DefaultedRegistry<T> implements IRegistry<T> {
         }
     }
 
+    @Override
     public IHolder<T> getDefault() {
         return objects[defaultId];
     }
 
-    public IHolder<T> getObject(byte id) {
-        if (id >= objects.length || id < 0)
+    @Override
+    public IHolder<T> getObject(IPrimitiveHolder id) {
+        if (id.getByte() >= objects.length || id.getByte() < 0)
             return getDefault();
         synchronized (lock) {
-            return objects[id];
+            return objects[id.getByte()];
         }
     }
 }

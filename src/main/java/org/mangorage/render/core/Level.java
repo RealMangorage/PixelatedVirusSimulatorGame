@@ -5,6 +5,7 @@ import org.mangorage.render.core.game.IEntityTile;
 import org.mangorage.render.core.game.ITileEntityTicker;
 import org.mangorage.render.core.game.Tile;
 import org.mangorage.render.core.game.TileEntity;
+import org.mangorage.render.core.primitive.IPrimitiveHolder;
 import org.mangorage.render.core.registry.IHolder;
 import org.mangorage.render.core.vector.Vector2D;
 
@@ -82,7 +83,7 @@ public final class Level {
         core: for (int x = 0; x < grid.length; x++) {
             for (int y = 0; y < grid[x].length; y++) {
                 var pos = Vector2D.of(x, y);
-                var breakLoop = consumer.accept(pos, Registries.Tiles.REGISTRY.getObject(grid[pos.x()][pos.y()]));
+                var breakLoop = consumer.accept(pos, Registries.Tiles.REGISTRY.getObject(IPrimitiveHolder.of(grid[pos.x()][pos.y()])));
                 if (breakLoop) break core;
             }
         }
@@ -93,7 +94,7 @@ public final class Level {
             return Registries.Tiles.REGISTRY.getDefault();
 
         synchronized (lock) {
-            return Registries.Tiles.REGISTRY.getObject(grid[pos.x()][pos.y()]);
+            return Registries.Tiles.REGISTRY.getObject(IPrimitiveHolder.of(grid[pos.x()][pos.y()]));
         }
     }
 
