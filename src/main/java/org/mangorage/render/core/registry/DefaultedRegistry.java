@@ -5,19 +5,19 @@ import java.util.Arrays;
 
 public final class DefaultedRegistry<T> implements IRegistry<T> {
 
-    public static <T> DefaultedRegistry<T> create(Class<T> tClass, byte defaultId) {
+    public static <T> DefaultedRegistry<T> create(Class<T> tClass, int defaultId) {
         return new DefaultedRegistry<>(tClass, defaultId);
     }
 
 
     private final Object lock = new Object();
     private final Class<T> tClass;
-    private final byte defaultId;
+    private final int defaultId;
 
     private IHolder<T>[] objects;
-    private byte freeID = 0;
+    private int freeID = 0;
 
-    public DefaultedRegistry(Class<T> objectClass, byte defaultID) {
+    public DefaultedRegistry(Class<T> objectClass, int defaultID) {
         this.tClass = objectClass;
         this.objects = new IHolder[0];
         this.defaultId = defaultID;
@@ -27,7 +27,7 @@ public final class DefaultedRegistry<T> implements IRegistry<T> {
         synchronized (lock) {
             IHolder<T>[] reference = this.objects;
             this.objects = Arrays.copyOf(reference, reference.length + 1);
-            byte takenId = freeID;
+            int takenId = freeID;
             IHolder<T> holder = new HolderImpl<>(takenId, object);
             objects[freeID] = holder;
             freeID++;
@@ -39,7 +39,7 @@ public final class DefaultedRegistry<T> implements IRegistry<T> {
         return objects[defaultId];
     }
 
-    public IHolder<T> getObject(byte id) {
+    public IHolder<T> getObject(int id) {
         if (id >= objects.length || id < 0)
             return getDefault();
         synchronized (lock) {

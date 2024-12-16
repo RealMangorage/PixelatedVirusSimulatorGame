@@ -11,7 +11,7 @@ public class InfectedTileEntity extends TileEntity {
     private int ticks = 0;
 
     public InfectedTileEntity(Level level, Vector2D pos) {
-        super(level, pos, Registries.Tiles.INFECTED.getId());
+        super(level, pos, Registries.Tiles.INFECTED);
     }
 
     public void tick() {

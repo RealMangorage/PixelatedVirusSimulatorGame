@@ -26,20 +26,19 @@ public final class Level {
         );
     }
 
-
     private final Object lock = new Object();
     private final Random random = new Random();
 
     private final Map<Vector2D, TileEntity> tileEntityMap = new HashMap<>();
     private final Map<Vector2D, ITileEntityTicker<? extends TileEntity>> tickerMap = new HashMap<>();
 
-    private final byte[][] grid;
+    private final int[][] grid;
     private final int sizeX, sizeY;
     private int ticks;
 
 
     public Level(int sizeX, int sizeY) {
-        this.grid = new byte[sizeX][sizeY];
+        this.grid = new int[sizeX][sizeY];
         this.sizeX = sizeX;
         this.sizeY = sizeY;
     }
@@ -67,12 +66,6 @@ public final class Level {
         }
     }
 
-    public byte getTileId(Vector2D pos) {
-        synchronized (lock) {
-            return grid[pos.x()][pos.y()];
-        }
-    }
-
     public boolean hasAnyTile(IHolder<? extends Tile> actual) {
         AtomicBoolean has = new AtomicBoolean(false);
         forEach((pos, tile) -> {
@@ -89,10 +82,8 @@ public final class Level {
         core: for (int x = 0; x < grid.length; x++) {
             for (int y = 0; y < grid[x].length; y++) {
                 var pos = Vector2D.of(x, y);
-                var id = getTileId(pos);
-                var breakLoop = consumer.accept(pos, Registries.Tiles.REGISTRY.getObject(id));
-                if (breakLoop)
-                    break core;
+                var breakLoop = consumer.accept(pos, Registries.Tiles.REGISTRY.getObject(grid[pos.x()][pos.y()]));
+                if (breakLoop) break core;
             }
         }
     }
@@ -100,7 +91,10 @@ public final class Level {
     public IHolder<? extends Tile> getTile(Vector2D pos) {
         if (pos.x() >= sizeX || pos.x() < 0 || pos.y() >= sizeY || pos.y() < 0)
             return Registries.Tiles.REGISTRY.getDefault();
-        return Registries.Tiles.REGISTRY.getObject(getTileId(pos));
+
+        synchronized (lock) {
+            return Registries.Tiles.REGISTRY.getObject(grid[pos.x()][pos.y()]);
+        }
     }
 
     public Optional<TileEntity> getTileEntity(Vector2D pos) {

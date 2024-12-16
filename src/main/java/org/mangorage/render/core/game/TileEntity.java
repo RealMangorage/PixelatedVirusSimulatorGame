@@ -1,17 +1,18 @@
 package org.mangorage.render.core.game;
 
 import org.mangorage.render.core.Level;
+import org.mangorage.render.core.registry.IHolder;
 import org.mangorage.render.core.vector.Vector2D;
 
 public abstract class TileEntity {
     private final Level level;
     private final Vector2D pos;
-    private final byte id;
+    private final IHolder<? extends Tile> tileHolder;
 
-    public TileEntity(Level level, Vector2D pos, byte id) {
+    public TileEntity(Level level, Vector2D pos, IHolder<? extends Tile> tileHolder) {
         this.level = level;
         this.pos = pos;
-        this.id = id;
+        this.tileHolder = tileHolder;
     }
 
     public Level getLevel() {
@@ -22,7 +23,7 @@ public abstract class TileEntity {
         return pos;
     }
 
-    public byte getId() {
-        return id;
+    public IHolder<? extends Tile> getTileHolder() {
+        return tileHolder;
     }
 }

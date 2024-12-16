@@ -11,7 +11,7 @@ public class HealthyTileEntity extends TileEntity {
     private int ticks = 0;
 
     public HealthyTileEntity(Level level, Vector2D pos) {
-        super(level, pos, Registries.Tiles.HEALTHY.getId());
+        super(level, pos, Registries.Tiles.HEALTHY);
     }
 
     public void tick() {
