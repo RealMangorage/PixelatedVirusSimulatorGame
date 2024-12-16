@@ -33,13 +33,13 @@ public final class Level {
     private final Map<Vector2D, TileEntity> tileEntityMap = new HashMap<>();
     private final Map<Vector2D, ITileEntityTicker<? extends TileEntity>> tickerMap = new HashMap<>();
 
-    private final int[][] grid;
+    private final byte[][] grid;
     private final int sizeX, sizeY;
     private int ticks;
 
 
     public Level(int sizeX, int sizeY) {
-        this.grid = new int[sizeX][sizeY];
+        this.grid = new byte[sizeX][sizeY];
         this.sizeX = sizeX;
         this.sizeY = sizeY;
     }
@@ -52,7 +52,7 @@ public final class Level {
         if (pos.x() >= sizeX || pos.x() < 0 || pos.y() >= sizeY || pos.y() < 0)
             return;
         synchronized (lock) {
-            this.grid[pos.x()][pos.y()] = holder.getId().getInt();
+            this.grid[pos.x()][pos.y()] = holder.getId().getByte();
 
             if (holder.getValue() instanceof IEntityTile<?> entityTile) {
                 var ticker = entityTile.createTicker();
