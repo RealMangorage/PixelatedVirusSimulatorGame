@@ -1,6 +1,6 @@
 package org.mangorage.render.core.primitive;
 
-public class BytePrimitiveHolderImpl implements IPrimitiveHolder {
+public final class BytePrimitiveHolderImpl implements IPrimitiveHolder {
     private final byte value;
 
     BytePrimitiveHolderImpl(byte value) {

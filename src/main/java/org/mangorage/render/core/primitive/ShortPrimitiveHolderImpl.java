@@ -1,20 +1,20 @@
 package org.mangorage.render.core.primitive;
 
-public final class IntPrimitiveHolderImpl implements IPrimitiveHolder {
-    private final int value;
+public final class ShortPrimitiveHolderImpl implements IPrimitiveHolder {
+    private final short value;
 
-    public IntPrimitiveHolderImpl(int value) {
+    ShortPrimitiveHolderImpl(short value) {
         this.value = value;
     }
 
     @Override
     public int getInt() {
-        return value;
+        return 0;
     }
 
     @Override
     public short getShort() {
-        return 0;
+        return value;
     }
 
     @Override
@@ -24,6 +24,6 @@ public final class IntPrimitiveHolderImpl implements IPrimitiveHolder {
 
     @Override
     public boolean hasType(Class<?> clazz) {
-        return clazz == int.class;
+        return clazz == short.class;
     }
 }

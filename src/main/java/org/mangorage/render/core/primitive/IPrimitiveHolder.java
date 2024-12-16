@@ -9,6 +9,10 @@ public interface IPrimitiveHolder {
         return new IntPrimitiveHolderImpl(value);
     }
 
+    static IPrimitiveHolder of(short value) {
+        return new ShortPrimitiveHolderImpl(value);
+    }
+
     int getInt();
     short getShort();
     byte getByte();
