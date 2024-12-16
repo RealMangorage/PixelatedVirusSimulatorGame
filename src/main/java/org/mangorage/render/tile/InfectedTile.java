@@ -5,6 +5,7 @@ import org.mangorage.render.core.game.IEntityTile;
 import org.mangorage.render.core.game.ITileEntityTicker;
 import org.mangorage.render.core.game.Tile;
 import org.mangorage.render.core.game.TileEntity;
+import org.mangorage.render.core.registry.IHolder;
 import org.mangorage.render.core.vector.Shape;
 import org.mangorage.render.core.vector.Vector2D;
 import org.mangorage.render.tile.entity.InfectedTileEntity;
@@ -33,7 +34,7 @@ public class InfectedTile extends Tile implements IEntityTile<InfectedTileEntity
     }
 
     @Override
-    public void tick(Level level, Vector2D pos, byte id) {
+    public void tick(Level level, Vector2D pos, IHolder<Tile> tileHolder) {
     }
 
     @Override
@@ -43,7 +44,7 @@ public class InfectedTile extends Tile implements IEntityTile<InfectedTileEntity
 
     @Override
     public ITileEntityTicker<InfectedTileEntity> createTicker() {
-        return ((pos, id, tile, tileEntity) -> {
+        return ((pos, tile, tileEntity) -> {
            tileEntity.tick();
         });
     }

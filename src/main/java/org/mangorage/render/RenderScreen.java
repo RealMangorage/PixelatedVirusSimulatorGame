@@ -22,6 +22,7 @@ public class RenderScreen extends JPanel {
         renderer.start();
 
         Timer ticker = new Timer((1 / 20), a -> level.tick());
+        ticker.setInitialDelay(250);
         ticker.start();
 
         stack
@@ -31,9 +32,9 @@ public class RenderScreen extends JPanel {
                 })
                 .push("game")
                 .addRenderer(g2 -> {
-                    level.forEach((pos, id, tile) -> {
-                        if (tile.canRender()) {
-                            g2.setColor(tile.getColor());
+                    level.forEach((pos, tile) -> {
+                        if (tile.getValue().canRender()) {
+                            g2.setColor(tile.getValue().getColor());
                             g2.fillRect(
                                     pos.x() * scale,
                                     pos.y() * scale,

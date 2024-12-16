@@ -1,6 +1,7 @@
 package org.mangorage.render.core.game;
 
 import org.mangorage.render.core.Level;
+import org.mangorage.render.core.registry.IHolder;
 import org.mangorage.render.core.vector.Shape;
 import org.mangorage.render.core.vector.Vector2D;
 
@@ -18,5 +19,5 @@ public abstract class Tile {
         return false;
     }
 
-    public void tick(Level level, Vector2D pos, byte id) {}
+    public void tick(Level level, Vector2D pos, IHolder<Tile> tileHolder) {}
 }

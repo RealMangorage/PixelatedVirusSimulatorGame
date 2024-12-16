@@ -21,8 +21,8 @@ public class InfectedTileEntity extends TileEntity {
 
         if (ticks % 90 == 0) {
             for (Direction direction : Direction.values()) {
-                if (level.getTile(direction.relative(pos, 1)) == Registries.Tiles.HEALTHY.getValue() && level.getRandom().nextInt(10) < 4) {
-                    level.setTile(direction.relative(pos, 1), Registries.Tiles.INFECTED.getId());
+                if (!level.getTile(direction.relative(pos, 1)).is(Registries.Tiles.HEALTHY) && level.getRandom().nextInt(10) < 4) {
+                    level.setTile(direction.relative(pos, 1), Registries.Tiles.INFECTED);
                     break;
                 }
             }

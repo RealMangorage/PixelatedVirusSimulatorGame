@@ -17,8 +17,8 @@ public class MainScreen {
 
         RenderScreen screen = new RenderScreen(Level.create(800, 600, 10), 10);
 
-        screen.getLevel().setTile(Vector2D.of(0, 10), Registries.Tiles.INFECTED.getId());
-        screen.getLevel().setTile(Vector2D.of(20, 10), Registries.Tiles.HEALTHY.getId());
+        screen.getLevel().setTile(Vector2D.of(0, 0), Registries.Tiles.INFECTED);
+        screen.getLevel().setTile(Vector2D.of(12, 1), Registries.Tiles.HEALTHY);
 
         window.setContentPane(screen);
         window.setVisible(true);

@@ -1,45 +1,47 @@
 package org.mangorage.render.core.registry;
 
-import java.lang.reflect.Array;
+
 import java.util.Arrays;
 
 public final class DefaultedRegistry<T> implements IRegistry<T> {
-    @SuppressWarnings("unchecked")
-    public static <T> T[] createGenericArray(Class<T> tClass, int length) {
-        return (T[]) Array.newInstance(tClass, length);
-    }
 
+    public static <T> DefaultedRegistry<T> create(Class<T> tClass, byte defaultId) {
+        return new DefaultedRegistry<>(tClass, defaultId);
+    }
 
 
     private final Object lock = new Object();
     private final Class<T> tClass;
     private final byte defaultId;
 
-    private T[] objects;
-    private byte freeID = 0x00;
+    private IHolder<T>[] objects;
+    private byte freeID = 0;
 
     public DefaultedRegistry(Class<T> objectClass, byte defaultID) {
         this.tClass = objectClass;
-        this.objects = createGenericArray(objectClass, 0);
+        this.objects = new IHolder[0];
         this.defaultId = defaultID;
     }
 
-    public <E extends T> RegistryObject<E> register(E object) {
+    public <E extends T> IHolder<E> register(E object) {
         synchronized (lock) {
-            T[] reference = this.objects;
+            IHolder<T>[] reference = this.objects;
             this.objects = Arrays.copyOf(reference, reference.length + 1);
-            objects[freeID] = object;
             byte takenId = freeID;
+            IHolder<T> holder = new HolderImpl<>(takenId, object);
+            objects[freeID] = holder;
             freeID++;
-            return new RegistryObject<>(takenId, object);
+            return new HolderImpl<>(takenId, object);
         }
     }
 
-    public T getDefault() {
+    public IHolder<T> getDefault() {
         return objects[defaultId];
     }
 
-    public T getObject(byte id) {
+    public IHolder<T> getObject(byte id) {
+        if (id >= objects.length || id < 0)
+            return getDefault();
         synchronized (lock) {
             return objects[id];
         }

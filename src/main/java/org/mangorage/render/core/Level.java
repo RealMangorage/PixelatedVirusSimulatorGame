@@ -5,6 +5,7 @@ import org.mangorage.render.core.game.IEntityTile;
 import org.mangorage.render.core.game.ITileEntityTicker;
 import org.mangorage.render.core.game.Tile;
 import org.mangorage.render.core.game.TileEntity;
+import org.mangorage.render.core.registry.IHolder;
 import org.mangorage.render.core.vector.Vector2D;
 
 import java.util.HashMap;
@@ -15,7 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class Level {
     public interface IGridConsumer<T> {
-        boolean accept(Vector2D vector2D, byte id, T object);
+        boolean accept(Vector2D vector2D, IHolder<T> object);
     }
 
     public static Level create(int width, int height, int scale) {
@@ -47,14 +48,13 @@ public final class Level {
         return random;
     }
 
-    public void setTile(Vector2D pos, byte id) {
+    public void setTile(Vector2D pos, IHolder<? extends Tile> holder) {
         if (pos.x() >= sizeX || pos.x() < 0 || pos.y() >= sizeY || pos.y() < 0)
             return;
         synchronized (lock) {
-            this.grid[pos.x()][pos.y()] = id;
+            this.grid[pos.x()][pos.y()] = holder.getId();
 
-            var tile = Registries.Tiles.REGISTRY.getObject(id);
-            if (tile instanceof IEntityTile<?> entityTile) {
+            if (holder.getValue() instanceof IEntityTile<?> entityTile) {
                 var ticker = entityTile.createTicker();
                 var tileEntity = entityTile.create(this, pos);
 
@@ -73,10 +73,10 @@ public final class Level {
         }
     }
 
-    public boolean hasAnyTile(byte id) {
+    public boolean hasAnyTile(IHolder<? extends Tile> actual) {
         AtomicBoolean has = new AtomicBoolean(false);
-        forEach((pos, id2, tile) -> {
-            if (id2 == id) {
+        forEach((pos, tile) -> {
+            if (actual.is(tile)) {
                 has.set(true);
                 return true;
             }
@@ -90,19 +90,17 @@ public final class Level {
             for (int y = 0; y < grid[x].length; y++) {
                 var pos = Vector2D.of(x, y);
                 var id = getTileId(pos);
-                var breakLoop = consumer.accept(pos, id, Registries.Tiles.REGISTRY.getObject(id));
+                var breakLoop = consumer.accept(pos, Registries.Tiles.REGISTRY.getObject(id));
                 if (breakLoop)
                     break core;
             }
         }
     }
 
-    public Tile getTile(Vector2D pos) {
+    public IHolder<? extends Tile> getTile(Vector2D pos) {
         if (pos.x() >= sizeX || pos.x() < 0 || pos.y() >= sizeY || pos.y() < 0)
             return Registries.Tiles.REGISTRY.getDefault();
-        return Registries.Tiles.REGISTRY.getObject(
-                getTileId(pos)
-        );
+        return Registries.Tiles.REGISTRY.getObject(getTileId(pos));
     }
 
     public Optional<TileEntity> getTileEntity(Vector2D pos) {
@@ -113,23 +111,22 @@ public final class Level {
     public void tick() {
         ticks++;
 
-        if (!hasAnyTile(Registries.Tiles.INFECTED.getId())) {
+        if (!hasAnyTile(Registries.Tiles.INFECTED)) {
             System.out.println("Healthy eliminated Infected");
             System.exit(0);
         }
-        if (!hasAnyTile(Registries.Tiles.HEALTHY.getId())) {
+        if (!hasAnyTile(Registries.Tiles.HEALTHY)) {
             System.out.println("Infected eliminated Healthy");
             System.exit(0);
         }
 
-        forEach((pos, id, tile) -> {
-            if (tile.canTick())
-                tile.tick(this, pos, id);
+        forEach((pos,tile) -> {
+            if (tile.getValue().canTick())
+                tile.getValue().tick(this, pos, tile);
             ITileEntityTicker<TileEntity> ticker = (ITileEntityTicker<TileEntity>) tickerMap.get(pos);
             if (ticker != null)
                 ticker.tick(
                         pos,
-                        id,
                         tile,
                         tileEntityMap.get(pos)
                 );

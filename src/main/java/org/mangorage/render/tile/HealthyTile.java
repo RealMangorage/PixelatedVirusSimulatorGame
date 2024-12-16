@@ -30,7 +30,7 @@ public class HealthyTile extends Tile implements IEntityTile<HealthyTileEntity> 
 
     @Override
     public ITileEntityTicker<HealthyTileEntity> createTicker() {
-        return ((pos, id, tile, tileEntity) -> {
+        return ((pos, tile, tileEntity) -> {
             tileEntity.tick();
         });
     }

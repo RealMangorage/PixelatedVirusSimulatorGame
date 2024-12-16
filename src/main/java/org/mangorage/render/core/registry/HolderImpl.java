@@ -1,10 +1,10 @@
 package org.mangorage.render.core.registry;
 
-public class RegistryObject<T> {
+public final class HolderImpl<T> implements IHolder<T> {
     private final byte id;
     private final T value;
 
-    RegistryObject(byte id, T value) {
+    HolderImpl(byte id, T value) {
         this.id = id;
         this.value = value;
     }

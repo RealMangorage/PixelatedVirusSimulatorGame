@@ -21,8 +21,8 @@ public class HealthyTileEntity extends TileEntity {
 
         if (ticks % 290 == 0) {
             for (Direction direction : Direction.values()) {
-                if (level.getTile(direction.relative(pos, 1)) != Registries.Tiles.HEALTHY.getValue() && level.getRandom().nextInt(10) < 4) {
-                    level.setTile(direction.relative(pos, 1), Registries.Tiles.HEALTHY.getId());
+                if (!level.getTile(direction.relative(pos, 1)).is(Registries.Tiles.HEALTHY) && level.getRandom().nextInt(10) < 4) {
+                    level.setTile(direction.relative(pos, 1), Registries.Tiles.HEALTHY);
                     break;
                 }
             }
