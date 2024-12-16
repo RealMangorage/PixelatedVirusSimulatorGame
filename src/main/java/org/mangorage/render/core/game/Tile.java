@@ -19,5 +19,5 @@ public abstract class Tile {
         return false;
     }
 
-    public void tick(Level level, Vector2D pos, IHolder<Tile> tileHolder) {}
+    public void tick(Level level, Vector2D pos, IHolder<? extends Tile> tileHolder) {}
 }

@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class Level {
     public interface IGridConsumer<T> {
-        boolean accept(Vector2D vector2D, IHolder<T> object);
+        boolean accept(Vector2D vector2D, IHolder<? extends T> object);
     }
 
     public static Level create(int width, int height, int scale) {
@@ -52,7 +52,7 @@ public final class Level {
         if (pos.x() >= sizeX || pos.x() < 0 || pos.y() >= sizeY || pos.y() < 0)
             return;
         synchronized (lock) {
-            this.grid[pos.x()][pos.y()] = holder.getId();
+            this.grid[pos.x()][pos.y()] = holder.getId().getByte();
 
             if (holder.getValue() instanceof IEntityTile<?> entityTile) {
                 var ticker = entityTile.createTicker();

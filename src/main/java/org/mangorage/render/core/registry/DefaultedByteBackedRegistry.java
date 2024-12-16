@@ -16,7 +16,7 @@ public final class DefaultedByteBackedRegistry<T> implements IRegistry<T> {
     private final Class<T> tClass;
     private final byte defaultId;
 
-    private IHolder<T>[] objects;
+    private IHolder<? extends T>[] objects;
     private byte freeID = 0;
 
     public DefaultedByteBackedRegistry(Class<T> objectClass, byte defaultID) {
@@ -28,23 +28,23 @@ public final class DefaultedByteBackedRegistry<T> implements IRegistry<T> {
     @Override
     public <E extends T> IHolder<E> register(E object) {
         synchronized (lock) {
-            IHolder<T>[] reference = this.objects;
+            IHolder<? extends T>[] reference = this.objects;
             this.objects = Arrays.copyOf(reference, reference.length + 1);
             var takenId = freeID;
-            IHolder<T> holder = new HolderImpl<>(takenId, object);
+            IHolder<E> holder = new HolderImpl<>(IPrimitiveHolder.of(takenId), object);
             objects[freeID] = holder;
             freeID++;
-            return new HolderImpl<>(takenId, object);
+            return holder;
         }
     }
 
     @Override
-    public IHolder<T> getDefault() {
+    public IHolder<? extends T> getDefault() {
         return objects[defaultId];
     }
 
     @Override
-    public IHolder<T> getObject(IPrimitiveHolder id) {
+    public IHolder<? extends T> getObject(IPrimitiveHolder id) {
         if (id.getByte() >= objects.length || id.getByte() < 0)
             return getDefault();
         synchronized (lock) {
