@@ -33,14 +33,12 @@ public class InfectedTileEntity extends TileEntity {
                 entity.ifPresent(e -> {
                     if (e instanceof HealthyTileEntity hte) {
                         health = health + hte.handleInfection(this);
-                        System.out.println("Found A Healthy!");
                     }
                 });
 
                 // Handle growing
                 if (health >= 20) {
                     health = health - 20;
-                    System.out.println("Infected grew!");
                     level.setTile(newPos, getTileHolder());
                 }
             }

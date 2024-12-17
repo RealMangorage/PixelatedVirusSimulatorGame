@@ -18,6 +18,8 @@ public class HealthyTileEntity extends TileEntity {
     public int handleInfection(InfectedTileEntity ite) {
         health = health - 10;
         if (health < 0) health = 0;
+        if (health == 0)
+            getLevel().setTile(getPos(), ite.getTileHolder());
         return health;
     }
 

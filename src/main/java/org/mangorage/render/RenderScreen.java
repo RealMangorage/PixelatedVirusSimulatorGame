@@ -21,7 +21,7 @@ public class RenderScreen extends JPanel {
         Timer renderer = new Timer((1 / 60), a -> repaint());
         renderer.start();
 
-        Timer ticker = new Timer(1000 * (1 / 20), a -> level.tick());
+        Timer ticker = new Timer(1, a -> level.tick());
         ticker.setInitialDelay(250);
         ticker.start();
 
