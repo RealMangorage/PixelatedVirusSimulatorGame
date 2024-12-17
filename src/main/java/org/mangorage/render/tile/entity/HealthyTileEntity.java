@@ -7,26 +7,43 @@ import org.mangorage.render.core.vector.Direction;
 import org.mangorage.render.core.vector.Vector2D;
 
 public class HealthyTileEntity extends TileEntity {
-    public static final boolean ENABLED = true;
+    private int health = 0;
     private int ticks = 0;
 
     public HealthyTileEntity(Level level, Vector2D pos) {
         super(level, pos, Registries.Tiles.HEALTHY);
     }
 
+
+    public int handleInfection(InfectedTileEntity ite) {
+        health = health - 10;
+        if (health < 0) health = 0;
+        return health;
+    }
+
+    public void setHealth(int health) {
+        this.health = health;
+    }
+
     public void tick() {
-        if (!ENABLED) return;
         var level = getLevel();
         var pos = getPos();
 
-        if (ticks % 290 == 0) {
-            for (Direction direction : Direction.values()) {
-                if (!level.getTile(direction.relative(pos, 1)).is(Registries.Tiles.HEALTHY) && level.getRandom().nextInt(10) < 4) {
-                    level.setTile(direction.relative(pos, 1), Registries.Tiles.HEALTHY);
-                    break;
-                }
+        if (ticks % 10 == 0)
+            health++;
+
+        if (ticks % 20 == 0 && health >= 20) {
+            Direction dir = Direction.getRandom(level.getRandom());
+            var newPos = dir.relative(pos, 1);
+            var tile = level.getTile(newPos);
+            var entity = level.getTileEntity(newPos);
+
+            if (tile != getTileHolder()) {
+                health = health - 20;
+                level.setTile(newPos, getTileHolder());
             }
         }
         ticks++;
     }
+
 }

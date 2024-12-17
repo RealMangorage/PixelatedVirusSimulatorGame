@@ -18,6 +18,5 @@ public interface IPrimitiveHolder {
     byte getByte();
 
     boolean hasType(Class<?> clazz);
-
     <T> T getType();
 }

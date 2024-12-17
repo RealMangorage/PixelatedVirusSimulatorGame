@@ -7,23 +7,41 @@ import org.mangorage.render.core.vector.Direction;
 import org.mangorage.render.core.vector.Vector2D;
 
 public class InfectedTileEntity extends TileEntity {
-    public static final boolean ENABLED = true;
+    private int health = 0;
     private int ticks = 0;
 
     public InfectedTileEntity(Level level, Vector2D pos) {
         super(level, pos, Registries.Tiles.INFECTED);
     }
 
+    public void setHealth(int health) {
+        this.health = health;
+    }
+
     public void tick() {
-        if (!ENABLED) return;
         var level = getLevel();
         var pos = getPos();
 
-        if (ticks % 90 == 0) {
-            for (Direction direction : Direction.values()) {
-                if (!level.getTile(direction.relative(pos, 1)).is(Registries.Tiles.HEALTHY) && level.getRandom().nextInt(10) < 4) {
-                    level.setTile(direction.relative(pos, 1), Registries.Tiles.INFECTED);
-                    break;
+        if (ticks % 20 == 0) {
+            Direction dir = Direction.getRandom(level.getRandom());
+            var newPos = dir.relative(pos, 1);
+            var tile = level.getTile(newPos);
+            var entity = level.getTileEntity(newPos);
+
+            if (tile != getTileHolder()) {
+                // Slowly infect healthy cells
+                entity.ifPresent(e -> {
+                    if (e instanceof HealthyTileEntity hte) {
+                        health = health + hte.handleInfection(this);
+                        System.out.println("Found A Healthy!");
+                    }
+                });
+
+                // Handle growing
+                if (health >= 20) {
+                    health = health - 20;
+                    System.out.println("Infected grew!");
+                    level.setTile(newPos, getTileHolder());
                 }
             }
         }

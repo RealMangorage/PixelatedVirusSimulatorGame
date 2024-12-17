@@ -49,8 +49,7 @@ public final class Level {
     }
 
     public void setTile(Vector2D pos, IHolder<? extends Tile> holder) {
-        if (pos.x() >= sizeX || pos.x() < 0 || pos.y() >= sizeY || pos.y() < 0)
-            return;
+        if (pos.x() >= sizeX || pos.x() < 0 || pos.y() >= sizeY || pos.y() < 0) return;
         synchronized (lock) {
             this.grid[pos.x()][pos.y()] = holder.getId().getType();
 
@@ -100,6 +99,15 @@ public final class Level {
 
     public Optional<TileEntity> getTileEntity(Vector2D pos) {
         return Optional.ofNullable(tileEntityMap.get(pos));
+    }
+
+    public <T extends TileEntity> Optional<T> getTileEntity(Vector2D pos, Class<T> tileEntityClass) {
+        var entityOptional = getTileEntity(pos);
+        if (entityOptional.isEmpty()) return Optional.empty();
+        var entity = entityOptional.get();
+        if (entity.getClass().isAssignableFrom(tileEntityClass))
+            return Optional.of((T) entity);
+        return Optional.empty();
     }
 
     @SuppressWarnings("unchecked")
