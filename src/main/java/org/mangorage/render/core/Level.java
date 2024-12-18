@@ -49,6 +49,7 @@ public final class Level {
                 setTile(Vector2D.of(x, y), Registries.Tiles.AIR);
             }
         }
+        var a = 1;
     }
 
     public Random getRandom() {
