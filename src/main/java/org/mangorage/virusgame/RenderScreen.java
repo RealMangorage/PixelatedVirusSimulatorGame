@@ -2,6 +2,7 @@ package org.mangorage.virusgame;
 
 import org.mangorage.virusgame.level.Level;
 import org.mangorage.virusgame.misc.SharedConstants;
+import org.mangorage.virusgame.render.RenderManager;
 import org.mangorage.virusgame.render.RenderStack;
 
 import javax.swing.*;
@@ -24,13 +25,7 @@ public class RenderScreen extends JPanel {
                 .addRenderer(g2 -> {
                     level.forEach((pos, tile) -> {
                         if (tile.getValue().canRender()) {
-                            g2.setColor(tile.getValue().getColor());
-                            g2.fillRect(
-                                    pos.x() * SharedConstants.scale,
-                                    pos.y() * SharedConstants.scale,
-                                    SharedConstants.scale,
-                                    SharedConstants.scale
-                            );
+                            RenderManager.getTileRenderer().getRenderer(tile.getId()).render(g2, level, pos, tile);
                         }
                         return false;
                     });

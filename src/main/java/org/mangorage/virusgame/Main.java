@@ -5,6 +5,7 @@ import org.mangorage.virusgame.level.tile.entity.HealthyTileEntity;
 import org.mangorage.virusgame.level.tile.entity.InfectedTileEntity;
 import org.mangorage.virusgame.misc.SharedConstants;
 import org.mangorage.virusgame.registry.BuiltInRegistries;
+import org.mangorage.virusgame.render.RenderManager;
 import org.mangorage.virusgame.vector.Vector2D;
 
 import javax.swing.*;
@@ -12,6 +13,7 @@ import javax.swing.*;
 public class Main {
     public static void main(String[] args) {
         BuiltInRegistries.bootstrap();
+        RenderManager.bootstrap();
 
         // Create level
         Level mainLevel = Level.create(SharedConstants.screenWidth, SharedConstants.screenHeight, SharedConstants.scale);

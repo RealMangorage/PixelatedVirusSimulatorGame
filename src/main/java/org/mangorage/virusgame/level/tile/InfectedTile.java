@@ -2,6 +2,7 @@ package org.mangorage.virusgame.level.tile;
 
 import org.mangorage.virusgame.level.Level;
 import org.mangorage.virusgame.level.tile.entity.TileEntity;
+import org.mangorage.virusgame.render.IRenderer;
 import org.mangorage.virusgame.vector.Shape;
 import org.mangorage.virusgame.vector.Vector2D;
 import org.mangorage.virusgame.level.tile.entity.InfectedTileEntity;
