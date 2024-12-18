@@ -1,17 +1,16 @@
 package org.mangorage.render.core.registry;
 
-import org.mangorage.render.core.primitive.IPrimitiveHolder;
 
 public final class HolderImpl<T> implements IHolder<T> {
-    private final IPrimitiveHolder id;
+    private final Key id;
     private final T value;
 
-    HolderImpl(IPrimitiveHolder id, T value) {
+    HolderImpl(Key id, T value) {
         this.id = id;
         this.value = value;
     }
 
-    public IPrimitiveHolder getId() {
+    public Key getId() {
         return id;
     }
 

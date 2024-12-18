@@ -5,8 +5,9 @@ import org.mangorage.render.core.game.IEntityTile;
 import org.mangorage.render.core.game.ITileEntityTicker;
 import org.mangorage.render.core.game.Tile;
 import org.mangorage.render.core.game.TileEntity;
-import org.mangorage.render.core.primitive.IPrimitiveHolder;
+import org.mangorage.render.core.primitive.ObjectTracker;
 import org.mangorage.render.core.registry.IHolder;
+import org.mangorage.render.core.registry.Key;
 import org.mangorage.render.core.vector.Vector2D;
 
 import java.util.HashMap;
@@ -32,6 +33,7 @@ public final class Level {
 
     private final Map<Vector2D, TileEntity> tileEntityMap = new HashMap<>();
     private final Map<Vector2D, ITileEntityTicker<? extends TileEntity>> tickerMap = new HashMap<>();
+    private final ObjectTracker<Key> tileTracker = new ObjectTracker<>();
 
     private final byte[][] grid;
     private final int sizeX, sizeY;
@@ -42,6 +44,11 @@ public final class Level {
         this.grid = new byte[sizeX][sizeY];
         this.sizeX = sizeX;
         this.sizeY = sizeY;
+        for (int x = 0; x < sizeX; x++) {
+            for (int y = 0; y < sizeY; y++) {
+                setTile(Vector2D.of(x, y), Registries.Tiles.AIR);
+            }
+        }
     }
 
     public Random getRandom() {
@@ -51,7 +58,8 @@ public final class Level {
     public void setTile(Vector2D pos, IHolder<? extends Tile> holder) {
         if (pos.x() >= sizeX || pos.x() < 0 || pos.y() >= sizeY || pos.y() < 0) return;
         synchronized (lock) {
-            this.grid[pos.x()][pos.y()] = holder.getId().getType();
+            tileTracker.removeObjectById(grid[pos.x()][pos.y()]);
+            this.grid[pos.x()][pos.y()] = tileTracker.addObject(holder.getId());
 
             if (holder.getValue() instanceof IEntityTile<?> entityTile) {
                 var ticker = entityTile.createTicker();
@@ -67,22 +75,21 @@ public final class Level {
     }
 
     public boolean hasAnyTile(IHolder<? extends Tile> actual) {
-        AtomicBoolean has = new AtomicBoolean(false);
-        forEach((_, tile) -> {
-            if (actual.is(tile)) {
-                has.set(true);
-                return true;
-            }
-            return false;
-        });
-        return has.get();
+        return tileTracker.getAmount(actual.getId()) != -1;
     }
 
     public void forEach(IGridConsumer<Tile> consumer) {
         core: for (int x = 0; x < grid.length; x++) {
             for (int y = 0; y < grid[x].length; y++) {
                 var pos = Vector2D.of(x, y);
-                var breakLoop = consumer.accept(pos, Registries.Tiles.REGISTRY.getObject(IPrimitiveHolder.of(grid[pos.x()][pos.y()])));
+                var breakLoop = consumer.accept(
+                        pos,
+                        Registries.Tiles.REGISTRY.getObject(
+                                tileTracker.getObjectById(
+                                        grid[pos.x()][pos.y()]
+                                )
+                        )
+                );
                 if (breakLoop) break core;
             }
         }
@@ -93,7 +100,7 @@ public final class Level {
             return Registries.Tiles.REGISTRY.getDefault();
 
         synchronized (lock) {
-            return Registries.Tiles.REGISTRY.getObject(IPrimitiveHolder.of(grid[pos.x()][pos.y()]));
+            return Registries.Tiles.REGISTRY.getObject(tileTracker.getObjectById(grid[pos.x()][pos.y()]));
         }
     }
 
