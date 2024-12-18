@@ -5,7 +5,7 @@ import org.mangorage.render.core.game.IEntityTile;
 import org.mangorage.render.core.game.ITileEntityTicker;
 import org.mangorage.render.core.game.Tile;
 import org.mangorage.render.core.game.TileEntity;
-import org.mangorage.render.core.primitive.ObjectTracker;
+import org.mangorage.render.core.primitive.ObjectByteBackedTracker;
 import org.mangorage.render.core.registry.IHolder;
 import org.mangorage.render.core.registry.Key;
 import org.mangorage.render.core.vector.Vector2D;
@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class Level {
     public interface IGridConsumer<T> {
@@ -33,7 +32,7 @@ public final class Level {
 
     private final Map<Vector2D, TileEntity> tileEntityMap = new HashMap<>();
     private final Map<Vector2D, ITileEntityTicker<? extends TileEntity>> tickerMap = new HashMap<>();
-    private final ObjectTracker<Key> tileTracker = new ObjectTracker<>();
+    private final ObjectByteBackedTracker<Key> tileTracker = new ObjectByteBackedTracker<>();
 
     private final byte[][] grid;
     private final int sizeX, sizeY;
@@ -132,8 +131,7 @@ public final class Level {
         }
 
         forEach((pos,tile) -> {
-            if (tile.getValue().canTick())
-                tile.getValue().tick(this, pos, tile);
+            if (tile.getValue().canTick()) tile.getValue().tick(this, pos, tile);
             ITileEntityTicker<TileEntity> ticker = (ITileEntityTicker<TileEntity>) tickerMap.get(pos);
             if (ticker != null)
                 ticker.tick(

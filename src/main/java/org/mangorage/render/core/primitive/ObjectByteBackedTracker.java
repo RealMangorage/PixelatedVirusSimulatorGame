@@ -7,41 +7,46 @@ import it.unimi.dsi.fastutil.bytes.Byte2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ByteMap;
 import it.unimi.dsi.fastutil.objects.Object2ByteOpenHashMap;
 
-import it.unimi.dsi.fastutil.bytes.Byte2IntMap;
-import it.unimi.dsi.fastutil.bytes.Byte2IntOpenHashMap;
-import it.unimi.dsi.fastutil.bytes.Byte2ObjectMap;
-import it.unimi.dsi.fastutil.bytes.Byte2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ByteMap;
-import it.unimi.dsi.fastutil.objects.Object2ByteOpenHashMap;
-
 import java.util.Stack;
 
-public class ObjectTracker<T> {
+public class ObjectByteBackedTracker<T> {
 
     private final Byte2IntMap objectCountMap = new Byte2IntOpenHashMap();
     private final Object2ByteMap<T> objectIdMap = new Object2ByteOpenHashMap<>();
     private final Byte2ObjectMap<T> byteIdToObjectMap = new Byte2ObjectOpenHashMap<>();
-
-    private byte nextByteId = -128;
     private final Stack<Byte> freedByteIds = new Stack<>();
+
+    private boolean added = false;
+    private byte nextByteId = -128;
 
     public byte addObject(T object) {
         byte id;
 
+        // Check if the object already has an ID
         if (objectIdMap.containsKey(object)) {
             id = objectIdMap.getByte(object);
             int count = objectCountMap.getOrDefault(id, 0);
             objectCountMap.put(id, count + 1);
         } else {
+            // If no freed byte IDs are available and we have exhausted the ID space, throw an exception
+            if (freedByteIds.isEmpty() && nextByteId == -128 && added) {
+                throw new IllegalStateException("No more byte IDs available");
+            }
+
+            // Reuse a freed byte ID if available, otherwise allocate a new ID
             if (!freedByteIds.isEmpty()) {
                 id = freedByteIds.pop(); // Reuse a freed byte ID
             } else {
                 id = nextByteId++; // Allocate a new byte ID
             }
+
             objectIdMap.put(object, id);
             byteIdToObjectMap.put(id, object);
             objectCountMap.put(id, 1);
         }
+
+
+        this.added = true;
 
         return id;
     }
