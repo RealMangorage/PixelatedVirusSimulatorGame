@@ -2,37 +2,34 @@ package org.mangorage.virusgame;
 
 import org.mangorage.virusgame.level.Level;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class Game {
-    private static Game INSTANCE;
-
-    static void initGame(Level level) {
-        INSTANCE = new Game(level);
-    }
+    private static Game INSTANCE = new Game();
 
     public static Game getInstance() {
         return INSTANCE;
     }
 
-    private final Level level;
     private final Random random = new Random();
+    private final List<Runnable> tickables = new ArrayList<>();
+    private Level level;
 
-    private Game(Level level) {
-        this.level = level;
-
+    private Game() {
         new Timer("Game Ticker", false)
                 .scheduleAtFixedRate(
                         new TimerTask() {
                             @Override
                             public void run() {
-                                level.tick();
+                                tick();
                             }
                         },
                         0,
-                        (int) (1000 * ((double) 1 / 20))
+1
                 );
     }
 
@@ -42,5 +39,19 @@ public class Game {
 
     public Level getLevel() {
         return level;
+    }
+
+    public void setLevel(Level level) {
+        this.level = level;
+    }
+
+    public void addTickable(Runnable tickable) {
+        this.tickables.add(tickable);
+    }
+
+    public void tick() {
+        if (level == null) return;
+        tickables.forEach(Runnable::run);
+        level.tick();
     }
 }

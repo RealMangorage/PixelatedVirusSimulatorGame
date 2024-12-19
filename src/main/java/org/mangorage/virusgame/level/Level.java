@@ -1,16 +1,24 @@
 package org.mangorage.virusgame.level;
 
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.mangorage.virusgame.level.tile.ITileEntityTicker;
 import org.mangorage.virusgame.level.tile.Tile;
 import org.mangorage.virusgame.level.tile.entity.TileEntity;
+import org.mangorage.virusgame.misc.SharedConstants;
 import org.mangorage.virusgame.registry.BuiltInRegistries;
 import org.mangorage.virusgame.registry.IHolder;
+import org.mangorage.virusgame.registry.Key;
 import org.mangorage.virusgame.vector.ChunkPos;
 import org.mangorage.virusgame.vector.Vector2D;
 
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public final class Level {
     public interface IGridConsumer<T> {
@@ -24,14 +32,15 @@ public final class Level {
     private final Object lock = new Object();
     private final Random random = new Random();
 
-    private final int cSizeX = 2;
-    private final int cSizeY = 2;
+    private final int cSizeX = SharedConstants.chunkSizeX;
+    private final int cSizeY = SharedConstants.chunkSizeY;
 
-    private final int sizeX = cSizeX * 16;
-    private final int sizeY = cSizeY * 16;
+    private final int sizeX = (cSizeX * 16) - 1;
+    private final int sizeY = (cSizeY * 16) - 1;
 
 
     private final Chunk[][] chunks = new Chunk[cSizeX][cSizeY];
+    private final Object2ObjectMap<Key, AtomicInteger> tileTracker = new Object2ObjectOpenHashMap<>();
 
     private Level() {
         for (int x = 0; x < chunks.length; x++) {
@@ -40,7 +49,7 @@ public final class Level {
             }
         }
         forEach((p, t) -> {
-            setTile(p, t);
+            setTile(p, BuiltInRegistries.Tiles.AIR);
             return false;
         });
     }
@@ -49,26 +58,41 @@ public final class Level {
         return random;
     }
 
+    public int getSizeX() {
+        return sizeX;
+    }
+
+    public int getSizeY() {
+        return sizeY;
+    }
+
     public void setTile(Vector2D pos, IHolder<? extends Tile> holder) {
         if (pos.x() < 0 || pos.y() < 0 || pos.x() > sizeX || pos.y() > sizeY)
             return;
         synchronized (lock) {
+            var currentTile = getTile(pos);
+            var tracker = tileTracker.get(currentTile.getId());
+            if (tracker != null) {
+                tracker.set(tracker.get() - 1);
+                if (tracker.get() == 0 && holder != currentTile)
+                    tileTracker.remove(currentTile.getId());
+            }
             ChunkPos chunkPos = pos.toChunkPos();
             chunks[chunkPos.cX()][chunkPos.cY()].setTile(
                     chunkPos,
                     holder
             );
+            tileTracker.computeIfAbsent(holder.getId(), k -> new AtomicInteger(0)).accumulateAndGet(1, Integer::sum);
         }
     }
 
-    public boolean hasAnyTile(IHolder<? extends Tile> actual) {
-        return true;
+    public boolean hasAnyTile(IHolder<? extends Tile> holder) {
+        return tileTracker.containsKey(holder.getId());
     }
 
-    public Optional<Chunk> getChunk(ChunkPos pos) {
-        if (pos.cX() < 0 || pos.cX() > cSizeX || pos.cY() < 0 || pos.cY() > cSizeY)
-            return Optional.empty();
-        return Optional.of(chunks[pos.cX()][pos.cY()]);
+    public Chunk getChunk(ChunkPos pos) {
+        if (pos.cX() < 0 || pos.cX() > cSizeX || pos.cY() < 0 || pos.cY() > cSizeY) return null;
+        return chunks[pos.cX()][pos.cY()];
     }
 
     public void forEach(IGridConsumer<Tile> consumer) {
@@ -95,27 +119,25 @@ public final class Level {
 
     public Optional<TileEntity> getTileEntity(Vector2D pos) {
         var chunk = getChunk(pos.toChunkPos());
-        return chunk.flatMap(value -> value.getTileEntity(pos));
+        if (chunk == null) return Optional.empty();
+        return Optional.ofNullable(chunk.getTileEntity(pos));
     }
 
     public <T extends TileEntity> Optional<T> getTileEntity(Vector2D pos, Class<T> tileEntityClass) {
         var chunk = getChunk(pos.toChunkPos());
-        return chunk.flatMap(value -> (Optional<T>) value.getTileEntity(pos));
+        if (chunk == null) return Optional.empty();
+        return Optional.ofNullable((T) chunk.getTileEntity(pos));
     }
 
     public void tick() {
-
         forEach((p, t) -> {
-            var chunkOptional = getChunk(p.toChunkPos());
-            if (chunkOptional.isPresent()) {
-                var chunk = chunkOptional.get();
-                var tileEntityOptional = chunk.getTileEntity(p);
-                if (tileEntityOptional.isPresent()) {
-                    var tileEntity = tileEntityOptional.get();
-                    chunk.getTicker(p).ifPresent(ticker -> {
-                        ((ITileEntityTicker<TileEntity>) ticker).tick(p, t, tileEntity);
-                    });
-                }
+            var chunk = getChunk(p.toChunkPos());
+            if (chunk != null) {
+                var tileEntity = chunk.getTileEntity(p);
+                var tileTicker = (ITileEntityTicker<TileEntity>) chunk.getTicker(p);
+
+                if (tileEntity != null)
+                    tileTicker.tick(p, t, tileEntity);
             }
             return false;
         });

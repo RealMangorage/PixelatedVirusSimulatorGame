@@ -15,24 +15,58 @@ public class Main {
         BuiltInRegistries.bootstrap();
         RenderManager.bootstrap();
 
+        if (SharedConstants.resetWhenDead) {
+            Game.getInstance().addTickable(() -> {
+                if (!Game.getInstance().getLevel().hasAnyTile(BuiltInRegistries.Tiles.HEALTHY)) {
+                    System.out.println("Infected eliminated Healthy");
+                    setLevel(); // Reset
+                }
+                if (!Game.getInstance().getLevel().hasAnyTile(BuiltInRegistries.Tiles.INFECTED)) {
+                    System.out.println("Healthy eliminated Infected");
+                    setLevel(); // Reset
+                }
+            });
+        }
+
+        // Prepare Level for Game
+        setLevel();
+
+        // Init Gui
+        SwingUtilities.invokeLater(RootScreen::initScreen);
+    }
+
+    public static void setLevel() {
         // Create level
         Level mainLevel = Level.create(SharedConstants.screenWidth, SharedConstants.screenHeight, SharedConstants.scale);
 
         // Prepare it
-        mainLevel.setTile(Vector2D.of(0, 0), BuiltInRegistries.Tiles.INFECTED);
-        mainLevel.getTileEntity(Vector2D.of(0, 0), InfectedTileEntity.class).ifPresent(ite -> {
-            ite.setHealth(160);
-        });
+        Vector2D healthyPos = Vector2D.of(
+               mainLevel.getRandom().nextInt(16),
+               mainLevel.getRandom().nextInt(16)
+        );
 
-        mainLevel.setTile(Vector2D.of(12, 1), BuiltInRegistries.Tiles.HEALTHY);
-        mainLevel.getTileEntity(Vector2D.of(12, 1), HealthyTileEntity.class).ifPresent(hte -> {
-            hte.setHealth(360);
-        });
+        Vector2D infectedPos = Vector2D.of(
+                mainLevel.getRandom().nextInt(16),
+                mainLevel.getRandom().nextInt(16)
+        );
+
+        var a = 1;
+
+        if (SharedConstants.spawnInfected) {
+            mainLevel.setTile(healthyPos, BuiltInRegistries.Tiles.INFECTED);
+            mainLevel.getTileEntity(healthyPos, InfectedTileEntity.class).ifPresent(ite -> {
+                ite.setHealth(160);
+            });
+        }
+
+        if (SharedConstants.spawnHealthy) {
+            mainLevel.setTile(infectedPos, BuiltInRegistries.Tiles.HEALTHY);
+            mainLevel.getTileEntity(infectedPos, HealthyTileEntity.class).ifPresent(hte -> {
+                hte.setHealth(360);
+            });
+        }
 
         // Init game
-        Game.initGame(mainLevel);
-
-        // Init Gui
-        SwingUtilities.invokeLater(RootScreen::initScreen);
+        Game.getInstance().setLevel(mainLevel);
     }
 }

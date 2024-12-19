@@ -10,15 +10,17 @@ import org.mangorage.virusgame.vector.Vector2D;
 import javax.swing.*;
 import java.awt.*;
 import java.util.HashSet;
+import java.util.function.Supplier;
 
 public class RenderScreen extends JPanel {
 
     private final RenderStack stack = RenderStack.of();
-    private final Level level = Game.getInstance().getLevel();
+    private final Supplier<Level> levelFetcher = () -> Game.getInstance().getLevel();
 
     public RenderScreen() {
         Timer renderer = new Timer((1 / 60), a -> repaint());
         renderer.start();
+
 
         stack
                 .addRenderer(g2 -> {
@@ -27,6 +29,7 @@ public class RenderScreen extends JPanel {
                 })
                 .push("game")
                 .addRenderer(g2 -> {
+                    var level = levelFetcher.get();
                     level.forEach((p, t) -> {
                         if (t.getValue().canRender()) {
                             RenderManager.getTileRenderer().getRenderer(t.getId())

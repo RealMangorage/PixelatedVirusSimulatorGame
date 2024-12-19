@@ -48,11 +48,11 @@ public final class Chunk {
         );
     }
 
-    public Optional<ITileEntityTicker<? extends TileEntity>> getTicker(Vector2D actualPos) {
-        return Optional.ofNullable(tickerMap.get(actualPos));
+    public ITileEntityTicker<? extends TileEntity> getTicker(Vector2D actualPos) {
+        return tickerMap.get(actualPos);
     }
 
-    public Optional<TileEntity> getTileEntity(Vector2D actualPos) {
-        return Optional.ofNullable(tileEntityMap.get(actualPos));
+    public TileEntity getTileEntity(Vector2D actualPos) {
+        return tileEntityMap.get(actualPos);
     }
 }
