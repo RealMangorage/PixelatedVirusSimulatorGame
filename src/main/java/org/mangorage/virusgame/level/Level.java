@@ -1,17 +1,14 @@
 package org.mangorage.virusgame.level;
 
-import org.mangorage.virusgame.registry.BuiltInRegistries;
-import org.mangorage.virusgame.level.tile.IEntityTile;
 import org.mangorage.virusgame.level.tile.ITileEntityTicker;
 import org.mangorage.virusgame.level.tile.Tile;
 import org.mangorage.virusgame.level.tile.entity.TileEntity;
-import org.mangorage.virusgame.misc.ObjectByteBackedTracker;
+import org.mangorage.virusgame.registry.BuiltInRegistries;
 import org.mangorage.virusgame.registry.IHolder;
-import org.mangorage.virusgame.registry.Key;
+import org.mangorage.virusgame.vector.ChunkPos;
 import org.mangorage.virusgame.vector.Vector2D;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.Random;
 
@@ -21,33 +18,31 @@ public final class Level {
     }
 
     public static Level create(int width, int height, int scale) {
-        return new Level(
-                (width / scale),
-                (height / scale)
-        );
+        return new Level();
     }
 
     private final Object lock = new Object();
     private final Random random = new Random();
 
-    private final Map<Vector2D, TileEntity> tileEntityMap = new HashMap<>();
-    private final Map<Vector2D, ITileEntityTicker<? extends TileEntity>> tickerMap = new HashMap<>();
-    private final ObjectByteBackedTracker<Key> tileTracker = new ObjectByteBackedTracker<>();
+    private final int cSizeX = 2;
+    private final int cSizeY = 2;
 
-    private final byte[][] grid;
-    private final int sizeX, sizeY;
-    private int ticks;
+    private final int sizeX = cSizeX * 16;
+    private final int sizeY = cSizeY * 16;
 
 
-    private Level(int sizeX, int sizeY) {
-        this.grid = new byte[sizeX][sizeY];
-        this.sizeX = sizeX;
-        this.sizeY = sizeY;
-        for (int x = 0; x < sizeX; x++) {
-            for (int y = 0; y < sizeY; y++) {
-                setTile(Vector2D.of(x, y), BuiltInRegistries.Tiles.AIR);
+    private final Chunk[][] chunks = new Chunk[cSizeX][cSizeY];
+
+    private Level() {
+        for (int x = 0; x < chunks.length; x++) {
+            for (int y = 0; y < chunks[x].length; y++) {
+                chunks[x][y] = new Chunk(this);
             }
         }
+        forEach((p, t) -> {
+            setTile(p, t);
+            return false;
+        });
     }
 
     public Random getRandom() {
@@ -55,39 +50,34 @@ public final class Level {
     }
 
     public void setTile(Vector2D pos, IHolder<? extends Tile> holder) {
-        if (pos.x() >= sizeX || pos.x() < 0 || pos.y() >= sizeY || pos.y() < 0) return;
+        if (pos.x() < 0 || pos.y() < 0 || pos.x() > sizeX || pos.y() > sizeY)
+            return;
         synchronized (lock) {
-            tileTracker.removeObjectById(grid[pos.x()][pos.y()]);
-            this.grid[pos.x()][pos.y()] = tileTracker.addObject(holder.getId());
-
-            if (holder.getValue() instanceof IEntityTile<?> entityTile) {
-                var ticker = entityTile.createTicker();
-                var tileEntity = entityTile.create(this, pos);
-
-                tickerMap.put(pos, ticker);
-                tileEntityMap.put(pos, tileEntity);
-            } else {
-                tileEntityMap.remove(pos);
-                tickerMap.remove(pos);
-            }
+            ChunkPos chunkPos = pos.toChunkPos();
+            chunks[chunkPos.cX()][chunkPos.cY()].setTile(
+                    chunkPos,
+                    holder
+            );
         }
     }
 
     public boolean hasAnyTile(IHolder<? extends Tile> actual) {
-        return tileTracker.getAmount(actual.getId()) != -1;
+        return true;
+    }
+
+    public Optional<Chunk> getChunk(ChunkPos pos) {
+        if (pos.cX() < 0 || pos.cX() > cSizeX || pos.cY() < 0 || pos.cY() > cSizeY)
+            return Optional.empty();
+        return Optional.of(chunks[pos.cX()][pos.cY()]);
     }
 
     public void forEach(IGridConsumer<Tile> consumer) {
-        core: for (int x = 0; x < grid.length; x++) {
-            for (int y = 0; y < grid[x].length; y++) {
+        core: for (int x = 0; x < sizeX; x++) {
+            for (int y = 0; y < sizeY; y++) {
                 var pos = Vector2D.of(x, y);
                 var breakLoop = consumer.accept(
                         pos,
-                        BuiltInRegistries.Tiles.REGISTRY.getObject(
-                                tileTracker.getObjectById(
-                                        grid[pos.x()][pos.y()]
-                                )
-                        )
+                        getTile(pos)
                 );
                 if (breakLoop) break core;
             }
@@ -95,54 +85,39 @@ public final class Level {
     }
 
     public IHolder<? extends Tile> getTile(Vector2D pos) {
-        if (pos.x() >= sizeX || pos.x() < 0 || pos.y() >= sizeY || pos.y() < 0)
+        if (pos.x() < 0 || pos.y() < 0 || pos.x() > sizeX || pos.y() > sizeY)
             return BuiltInRegistries.Tiles.REGISTRY.getDefault();
-
         synchronized (lock) {
-            return BuiltInRegistries.Tiles.REGISTRY.getObject(tileTracker.getObjectById(grid[pos.x()][pos.y()]));
+            ChunkPos chunkPos = pos.toChunkPos();
+            return chunks[chunkPos.cX()][chunkPos.cY()].getTile(chunkPos);
         }
     }
 
     public Optional<TileEntity> getTileEntity(Vector2D pos) {
-        return Optional.ofNullable(tileEntityMap.get(pos));
+        var chunk = getChunk(pos.toChunkPos());
+        return chunk.flatMap(value -> value.getTileEntity(pos));
     }
 
     public <T extends TileEntity> Optional<T> getTileEntity(Vector2D pos, Class<T> tileEntityClass) {
-        var entityOptional = getTileEntity(pos);
-        if (entityOptional.isEmpty()) return Optional.empty();
-        var entity = entityOptional.get();
-        if (entity.getClass().isAssignableFrom(tileEntityClass))
-            return Optional.of((T) entity);
-        return Optional.empty();
+        var chunk = getChunk(pos.toChunkPos());
+        return chunk.flatMap(value -> (Optional<T>) value.getTileEntity(pos));
     }
 
-    @SuppressWarnings("unchecked")
     public void tick() {
-        ticks++;
 
-        if (!hasAnyTile(BuiltInRegistries.Tiles.INFECTED)) {
-            System.out.println("Healthy eliminated Infected");
-            System.exit(0);
-        }
-        if (!hasAnyTile(BuiltInRegistries.Tiles.HEALTHY)) {
-            System.out.println("Infected eliminated Healthy");
-            System.exit(0);
-        }
-
-        forEach((pos,tile) -> {
-            if (tile.getValue().canTick()) tile.getValue().tick(this, pos, tile);
-            ITileEntityTicker<TileEntity> ticker = (ITileEntityTicker<TileEntity>) tickerMap.get(pos);
-            if (ticker != null)
-                ticker.tick(
-                        pos,
-                        tile,
-                        tileEntityMap.get(pos)
-                );
+        forEach((p, t) -> {
+            var chunkOptional = getChunk(p.toChunkPos());
+            if (chunkOptional.isPresent()) {
+                var chunk = chunkOptional.get();
+                var tileEntityOptional = chunk.getTileEntity(p);
+                if (tileEntityOptional.isPresent()) {
+                    var tileEntity = tileEntityOptional.get();
+                    chunk.getTicker(p).ifPresent(ticker -> {
+                        ((ITileEntityTicker<TileEntity>) ticker).tick(p, t, tileEntity);
+                    });
+                }
+            }
             return false;
         });
-    }
-
-    public int getTicks() {
-        return ticks;
     }
 }

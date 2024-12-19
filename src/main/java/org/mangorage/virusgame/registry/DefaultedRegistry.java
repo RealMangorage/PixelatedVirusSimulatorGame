@@ -40,7 +40,7 @@ public final class DefaultedRegistry<T> implements IRegistry<T> {
     @Override
     public IHolder<? extends T> getObject(Key id) {
         synchronized (lock) {
-            return registered.get(id);
+            return registered.getOrDefault(id, registered.get(defaultId));
         }
     }
 }

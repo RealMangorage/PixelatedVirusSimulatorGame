@@ -25,7 +25,7 @@ public class Main {
         });
 
         mainLevel.setTile(Vector2D.of(12, 1), BuiltInRegistries.Tiles.HEALTHY);
-        mainLevel.getTileEntity(Vector2D.of(0, 0), HealthyTileEntity.class).ifPresent(hte -> {
+        mainLevel.getTileEntity(Vector2D.of(12, 1), HealthyTileEntity.class).ifPresent(hte -> {
             hte.setHealth(360);
         });
 

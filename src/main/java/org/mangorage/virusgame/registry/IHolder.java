@@ -1,6 +1,5 @@
 package org.mangorage.virusgame.registry;
 
-
 public interface IHolder<T> {
     T getValue();
     Key getId();

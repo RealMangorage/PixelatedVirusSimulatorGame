@@ -1,12 +1,16 @@
 package org.mangorage.virusgame;
 
 import org.mangorage.virusgame.level.Level;
-import org.mangorage.virusgame.misc.SharedConstants;
+import org.mangorage.virusgame.level.tile.Tile;
+import org.mangorage.virusgame.registry.IHolder;
 import org.mangorage.virusgame.render.RenderManager;
 import org.mangorage.virusgame.render.RenderStack;
+import org.mangorage.virusgame.vector.Vector2D;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.HashSet;
+
 public class RenderScreen extends JPanel {
 
     private final RenderStack stack = RenderStack.of();
@@ -23,9 +27,10 @@ public class RenderScreen extends JPanel {
                 })
                 .push("game")
                 .addRenderer(g2 -> {
-                    level.forEach((pos, tile) -> {
-                        if (tile.getValue().canRender()) {
-                            RenderManager.getTileRenderer().getRenderer(tile.getId()).render(g2, level, pos, tile);
+                    level.forEach((p, t) -> {
+                        if (t.getValue().canRender()) {
+                            RenderManager.getTileRenderer().getRenderer(t.getId())
+                                    .render(g2, level, p, t);
                         }
                         return false;
                     });
